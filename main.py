@@ -12,32 +12,8 @@
 #       find the total of the digital sums of the first one hundred decimal digits
 #       for all the irrational square roots.
 
+from decimal_array import DecimalArray
 from math import floor, sqrt
-
-################################################################################
-################################## UNFINISHED ##################################
-################################################################################
-
-def decimal_floor(digits, count):
-    """
-    For a finite-length positive decimal number represented as an array of `digits` with `count` decimal places,
-      returns the floor of the number as an integer.
-
-    Args:
-        digits (List[int]): List of digits in reverse
-        count  (int)      : Non-negative integer (<= len(digits))
-
-    Returns:
-        (int): Floor of number represented by (digits, count)
-
-    Raises:
-         AssertError: if incorrect args are given
-    """
-    assert type(digits) == list and all(map(lambda d: type(d) == int and 0 <= d < 10, digits))
-    assert type(count) == int and 0 <= count <= len(digits)
-
-    # Cut off decimal and process back into an int
-    return int(''.join(map(str, digits[count:][::-1])))
 
 
 def decimal_square(digits, count):
@@ -105,43 +81,44 @@ def main(n):
 
     # Idea:
     #     Simply figure out the 100 digits of each number up through `n`.
-    #     Do this by representing finite-length decimal numbers as arrays of digits (in reverse).
+    #     Do this by representing a finite-length decimal number as a DecimalArray (array of digits in reverse).
     #     To figure out each subsequent digit of sqrt(x),
     #       loop through possible digits [0-9]
     #       and choose the greatest not causing square to exceed `x`.
+
+    # Future improvements:
+    #   * Rather than linearly searching for each digit [0-9], use binary search for some speedup.
+    #   * Use some algebraic manipulation to directly figure out the best next digit (?)
 
     digit_sum_all = 0
 
     for x in range(1, n+1):
         if is_square(x):
-            print('Skipping {}'.format(x))
             continue
         else:
-            print('Calculating {} ...'.format(x))
-
             # Start with the closest whole number, so no decimal digits yet
-            approx_root = list(map(int, list(str(floor(sqrt(x))))))
-            approx_root.reverse()
+            approx_root = DecimalArray(int_value=floor(sqrt(x)))
 
             # Add each next digit sequentially, until 100 digits found
-            for root_digit_count in range(1, 101):  # Number of decimal places of current approx_root
+            while len(approx_root.digits) < 100:
                 # Next digit is in range [0-9], so try from 9 downwards until square becomes less than `x`
-                approx_root.insert(0, None)
+                approx_root.digits.insert(0, None)
+                approx_root.decimal_places += 1
+                # print('    Temp root = {}, {}'.format(approx_root.digits, approx_root.decimal_places))
                 for d in range(9, -1, -1):
-                    approx_root[0] = d
+                    approx_root.digits[0] = d
                     if d == 0:
                         # No compute needed since 0 is the last digit option
                         break
                     else:
-                        approx_square, square_digit_count = decimal_square(approx_root, root_digit_count)
-                        if decimal_floor(approx_square, square_digit_count) < x:
+                        approx_square = approx_root * approx_root
+                        if approx_square.floor() < x:
                             # Square of approx_root is less than `x`, so digit `i` has been found
                             break
                         else:
                             continue
-
-            digit_sum = sum(approx_root[:100])
-            print('  -> {}'.format(digit_sum))
+            # Extract first 100 digits of number, regardless of decimal place
+            digit_sum = sum(approx_root.digits[-100:])
             digit_sum_all += digit_sum
 
     return digit_sum_all
