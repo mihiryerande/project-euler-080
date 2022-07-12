@@ -14,9 +14,10 @@
 
 from decimal_array import DecimalArray
 from math import floor, sqrt
+from typing import List, Tuple
 
 
-def decimal_square(digits, count):
+def decimal_square(digits: List[int], count: int) -> Tuple[List[int], int]:
     """
     For a finite-length positive decimal number represented as an array of `digits` with `count` decimal places,
       returns the square of the number as a tuple represented in the same way.
@@ -44,7 +45,7 @@ def decimal_square(digits, count):
     return x, 2*count
 
 
-def is_square(n):
+def is_square(n: int) -> bool:
     """
     Returns True iff `n` is a square number.
 
@@ -62,7 +63,7 @@ def is_square(n):
     return floor(r) == r
 
 
-def main(n):
+def main(n: int) -> int:
     """
     For the first `n` natural numbers,
       returns the sum of the first 100 decimal digits
